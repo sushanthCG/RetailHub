@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>RetailHub - Home</title>
+    <link rel="stylesheet" th:href="@{/style.css}">
+    <link rel="stylesheet" th:href="@{/customerhome.css}">
+</head>
+<body>
+
+<!-- ══ NAVBAR ══ -->
+<nav class="navbar">
+    <div class="brand">🛒 Retail<span>Hub</span></div>
+    <div class="nav-right">
+        <button class="cart-btn" onclick="openCart()">
+            🛍️
+            <span class="cart-badge" id="cartBadge">0</span>
+        </button>
+        <div class="profile-wrap">
+            <button class="profile-btn" onclick="toggleDrop()">👤 Account ▾</button>
+            <div class="drop-menu" id="dropMenu">
+                <a href="#">👤 &nbsp;My Profile</a>
+                <a href="#">📦 &nbsp;My Orders</a>
+                <a href="#">⚙️ &nbsp;Settings</a>
+                <div class="divider"></div>
+                <a href="/auth/logout" class="logout">🚪 &nbsp;Logout</a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- ══ CATEGORY BAR ══ -->
+<!-- exact DB category_name values used in onclick -->
+<div class="cat-bar">
+    <button class="cat-btn active" onclick="filterCat(this,'All')">🏠 All</button>
+    <button class="cat-btn" onclick="filterCat(this,'Shirts')">👔 Shirts</button>
+    <button class="cat-btn" onclick="filterCat(this,'Pants')">👖 Pants</button>
+    <button class="cat-btn" onclick="filterCat(this,'Accessories')">👜 Accessories</button>
+    <button class="cat-btn" onclick="filterCat(this,'Mobiles')">📱 Mobiles</button>
+    <button class="cat-btn" onclick="filterCat(this,'Mobile Accessories')">🎧 Mobile Accessories</button>
+</div>
+
+<!-- ══ HERO ══ -->
+<div class="hero">
+    <h1>Welcome to RetailHub! 👋</h1>
+    <p>Discover the latest fashion &amp; tech products</p>
+    <a href="/api/products-page" class="hero-btn">Shop All Products →</a>
+</div>
+
+<!-- ══ PRODUCTS ══ -->
+<div class="section">
+    <div class="section-title">🛍️ Featured Products</div>
+    <div class="products-grid" id="productsGrid">
+
+        <div class="product-card"
+             th:each="product : ${products}"
+             th:attr="data-category=${product.category != null ? product.category.category_name : ''},
+                      data-name=${product.name}">
+
+            <!-- IMAGE — image_url field -->
+            <div th:if="${product.images != null and !product.images.empty}">
+                <img th:src="${product.images[0].image_url}"
+                     th:alt="${product.name}">
+            </div>
+            <div class="no-img"
+                 th:if="${product.images == null or product.images.empty}">🛍️</div>
+
+            <div class="card-body">
+
+                <!-- CATEGORY — category_name field -->
+                <div class="card-cat"
+                     th:text="${product.category != null
+                        ? product.category.category_name : 'General'}">
+                </div>
+
+                <!-- NAME -->
+                <div class="card-name" th:text="${product.name}">Name</div>
+
+                <!-- DESCRIPTION -->
+                <div class="card-desc" th:text="${product.description}">Desc</div>
+
+                <div class="card-footer">
+                    <div>
+                        <!-- PRICE -->
+                        <div class="card-price">
+                            ₹<span th:text="${product.price}"></span>
+                        </div>
+                        <!-- STOCK -->
+                        <div class="card-stock"
+                             th:classappend="${product.stock == 0} ? 'out' : ''"
+                             th:text="${product.stock > 0}
+                                ? 'In Stock (' + ${product.stock} + ')'
+                                : 'Out of Stock'">
+                        </div>
+                    </div>
+
+                    <!-- ADD TO CART — product_id field -->
+                    <button class="add-btn"
+                            th:disabled="${product.stock == 0}"
+                            th:attr="onclick='addToCart('
+                                + ${product.product_id}
+                                + ','
+                                + '&quot;' + ${product.name} + '&quot;'
+                                + ','
+                                + ${product.price}
+                                + ','
+                                + '&quot;' + (${product.images != null and !product.images.empty} ? ${product.images[0].image_url} : '') + '&quot;'
+                                + ')'">
+                        🛒 Add to Cart
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- ══ CART OVERLAY ══ -->
+<div class="cart-overlay" id="cartOverlay" onclick="closeCart()"></div>
+
+<!-- ══ CART PANEL ══ -->
+<div class="cart-panel" id="cartPanel">
+    <div class="cart-head">
+        <h3>🛍️ Your Cart</h3>
+        <button class="close-btn" onclick="closeCart()">✕</button>
+    </div>
+    <div class="cart-body" id="cartBody">
+        <div class="cart-empty"><div>🛒</div>Your cart is empty</div>
+    </div>
+    <div class="cart-foot">
+        <div class="cart-total-row">
+            <span>Total</span>
+            <span id="cartTotal">₹0</span>
+        </div>
+        <button class="checkout-btn">Proceed to Checkout →</button>
+    </div>
+</div>
+
+<script th:src="@{/customerhome.js}"></script>
+</body>
+</html>
