@@ -29,7 +29,7 @@ public class Otp {
     private LocalDateTime expiresAt;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)  // FK column in otp table
+    @JoinColumn(name = "user_id", nullable = false) 
     private User user;
 
     public Otp() {

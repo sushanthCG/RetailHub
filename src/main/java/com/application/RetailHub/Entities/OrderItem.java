@@ -43,7 +43,7 @@ public class OrderItem {
 	this.product = product;
 }
 
-	//  getters & setters
+	
 	public Integer getId() {
 		return id;
 	}

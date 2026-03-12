@@ -26,7 +26,7 @@ public class ProductImages {
     @JsonIgnore
     private Product product;
     
-    // getters & setters
+    
 
 	public ProductImages() {
 		super();

@@ -9,10 +9,11 @@ import com.application.RetailHub.Entities.User;
 @Repository
 public interface UserRepository extends JpaRepository<User, Integer> {
 
-    // Find by username
+ 
     Optional<User> findByUsername(String username);
 
-    // Find by email
+  
     Optional<User> findByEmail(String email);
+    
 
 }

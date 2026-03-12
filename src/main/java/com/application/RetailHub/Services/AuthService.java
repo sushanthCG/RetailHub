@@ -6,7 +6,6 @@ import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.Random;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -34,7 +33,6 @@ public class AuthService {
     private final BCryptPasswordEncoder passwordEncoder;
     private final Key SIGNING_KEY;
 
-    @Autowired
     public AuthService(UserRepository userRepository,
                        OtpRepository otpRepository,
                        JwtTokenRepository jwtTokenRepository,
@@ -54,9 +52,7 @@ public class AuthService {
         this.SIGNING_KEY = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
     }
 
-    // =====================================================
-    // 🔐 NORMAL LOGIN
-    // =====================================================
+    
     public String loginAndGenerateToken(String email, String password) {
 
         User user = userRepository.findByEmail(email)
@@ -69,14 +65,12 @@ public class AuthService {
         return generateToken(user);
     }
 
-    // =====================================================
-    // 🔑 FORGOT PASSWORD - GENERATE OTP
-    // =====================================================
+  
+    
     public User generatePasswordResetOtp(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Email not found"));
 
-        // ✅ Delete old OTPs for this user before creating new one
         otpRepository.deleteByUserId(user.getUser_id());
 
         String otpCode = String.valueOf(new Random().nextInt(900000) + 100000);
@@ -97,15 +91,11 @@ public class AuthService {
         return user;
     }
 
-    // =====================================================
-    // ✅ VERIFY RESET OTP
-    // =====================================================
+  
     public void verifyResetOtp(String email, String enteredOtp) {
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Email not found"));
-
-     // ✅ Must match new method name
         Otp otp = otpRepository.findLatestOtpByUserId(user.getUser_id())
                 .orElseThrow(() -> new RuntimeException("OTP not found"));
 
@@ -115,10 +105,8 @@ public class AuthService {
         if (!otp.getOtpCode().equals(enteredOtp))
             throw new RuntimeException("Invalid OTP");
     }
-
-    // =====================================================
-    // 🔄 RESET PASSWORD
-    // =====================================================
+    
+   
     public void resetPassword(String email, String newPassword) {
 
         User user = userRepository.findByEmail(email)
@@ -128,9 +116,7 @@ public class AuthService {
         userRepository.save(user);
     }
 
-    // =====================================================
-    // 🎟 JWT TOKEN GENERATION
-    // =====================================================
+
     private String generateToken(User user) {
 
         LocalDateTime now = LocalDateTime.now();

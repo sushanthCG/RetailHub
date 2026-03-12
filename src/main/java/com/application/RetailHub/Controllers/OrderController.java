@@ -53,14 +53,14 @@ public class OrderController {
         this.userRepository      = userRepository;
     }
 
-    // ── Checkout PAGE ──────────────────────────────
+  
     @GetMapping("/checkout")
     public String checkoutPage(Model model) {
         model.addAttribute("razorpayKeyId", razorpayKeyId);
         return "order";
     }
 
-    // ── Create Razorpay Order (called from JS) ──────
+    
     @PostMapping("/create-razorpay-order")
     @ResponseBody
     public ResponseEntity<?> createRazorpayOrder(@RequestBody Map<String, Object> body) {
@@ -85,18 +85,20 @@ public class OrderController {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
-
-    // ── Save Order after Payment Success ───────────
+ 
     @PostMapping("/save-order")
     @ResponseBody
     public ResponseEntity<?> saveOrder(@RequestBody Map<String, Object> body,
                                        HttpServletRequest request) {
         try {
-            // Get username from JWT filter attribute
             String username = (String) request.getAttribute("username");
-            User user = userRepository.findByUsername(username);
 
-            // Build Order
+            if (username == null) {
+                return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
+            }
+            User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
             Order order = new Order();
             order.setOrder_id("ORD-" + UUID.randomUUID().toString().substring(0, 10).toUpperCase());
             order.setTotal_amount(Double.parseDouble(body.get("totalAmount").toString()));
@@ -106,7 +108,6 @@ public class OrderController {
             order.setUser(user);
             orderRepository.save(order);
 
-            // Save each OrderItem
             List<Map<String, Object>> items =
                 (List<Map<String, Object>>) body.get("items");
 
@@ -118,7 +119,11 @@ public class OrderController {
                 Product product = productRepository.findById(productId).orElse(null);
                 if (product == null) continue;
 
-                // Reduce stock
+              
+                if (product.getStock() < qty) {
+                    return ResponseEntity.badRequest()
+                        .body(Map.of("error", "Insufficient stock for: " + product.getName()));
+                }
                 product.setStock(product.getStock() - qty);
                 productRepository.save(product);
 
@@ -140,4 +145,4 @@ public class OrderController {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
-}
+    }
