@@ -1,6 +1,4 @@
-/* ══════════════════════════════
-   PROFILE DROPDOWN
-══════════════════════════════ */
+
 function toggleDrop() {
     document.getElementById('dropMenu').classList.toggle('open');
 }
@@ -10,9 +8,7 @@ document.addEventListener('click', function (e) {
     }
 });
 
-/* ══════════════════════════════
-   FILTER STATE
-══════════════════════════════ */
+
 let currentCat    = 'All';
 let currentSearch = '';
 
@@ -37,9 +33,7 @@ function applyFilters() {
     });
 }
 
-/* ══════════════════════════════
-   CART
-══════════════════════════════ */
+
 let cart = [];
 
 function openCart() {
@@ -104,13 +98,9 @@ function renderCart() {
             </div>
         </div>
     `).join('');
-    // ← renderCart() closes HERE
+   
 }
 
-/* ══════════════════════════════
-   CHECKOUT BUTTON
-   Outside renderCart — runs once on page load
-══════════════════════════════ */
 document.addEventListener('DOMContentLoaded', function () {
     document.querySelector('.checkout-btn').addEventListener('click', function () {
         if (cart.length === 0) {

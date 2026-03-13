@@ -1,6 +1,4 @@
-/* ══════════════════════════════
-   PROFILE DROPDOWN
-══════════════════════════════ */
+
 function toggleDrop() {
     document.getElementById('dropMenu').classList.toggle('open');
 }
@@ -10,9 +8,6 @@ document.addEventListener('click', function (e) {
     }
 });
 
-/* ══════════════════════════════
-   FILTER STATE
-══════════════════════════════ */
 let currentCat    = 'All';
 let currentPrice  = 0;
 let currentSearch = '';
@@ -96,10 +91,6 @@ function sortProducts() {
 
     cards.forEach(card => grid.appendChild(card));
 }
-
-/* ══════════════════════════════
-   CART
-══════════════════════════════ */
 let cart = [];
 
 function openCart() {
@@ -164,13 +155,9 @@ function renderCart() {
             </div>
         </div>
     `).join('');
-    // ← renderCart() closes HERE — checkout code is OUTSIDE below
+    
 }
 
-/* ══════════════════════════════
-   CHECKOUT BUTTON
-   Outside renderCart — runs once on page load
-══════════════════════════════ */
 document.addEventListener('DOMContentLoaded', function () {
     document.querySelector('.checkout-btn').addEventListener('click', function () {
         if (cart.length === 0) {

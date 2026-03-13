@@ -1,7 +1,3 @@
-/* ══════════════════════════════════════
-   LOAD CART FROM sessionStorage
-   products.js saves cart before navigating
-══════════════════════════════════════ */
 let cart = [];
 
 window.addEventListener('DOMContentLoaded', function () {
@@ -11,7 +7,6 @@ window.addEventListener('DOMContentLoaded', function () {
     }
 
     if (cart.length === 0) {
-        // Nothing in cart — go back
         alert('Your cart is empty!');
         window.location.href = '/api/products-page';
         return;
@@ -21,9 +16,6 @@ window.addEventListener('DOMContentLoaded', function () {
     setupPaymentToggle();
 });
 
-/* ══════════════════════════════════════
-   RENDER ORDER SUMMARY
-══════════════════════════════════════ */
 function renderSummary() {
     const container = document.getElementById('summaryItems');
     const total     = cart.reduce((s, i) => s + i.price * i.qty, 0);
@@ -47,9 +39,6 @@ function renderSummary() {
     document.getElementById('summaryTotal').textContent    = '₹' + fmt;
 }
 
-/* ══════════════════════════════════════
-   PAYMENT METHOD TOGGLE
-══════════════════════════════════════ */
 function setupPaymentToggle() {
     document.querySelectorAll('.pay-option').forEach(opt => {
         opt.addEventListener('click', function () {
@@ -66,9 +55,6 @@ function setupPaymentToggle() {
     });
 }
 
-/* ══════════════════════════════════════
-   VALIDATE ADDRESS FORM
-══════════════════════════════════════ */
 function validateForm() {
     const fields = ['fullName', 'phone', 'address', 'city', 'state', 'pincode'];
     for (const id of fields) {
@@ -83,9 +69,6 @@ function validateForm() {
     return true;
 }
 
-/* ══════════════════════════════════════
-   PLACE ORDER — main function
-══════════════════════════════════════ */
 async function placeOrder() {
     if (!validateForm()) return;
 
@@ -93,17 +76,15 @@ async function placeOrder() {
     const total  = cart.reduce((s, i) => s + i.price * i.qty, 0);
 
     if (method === 'cod') {
-        await saveOrderToBackend(total, 'COD', null);
+        await saveOrderToBackend(total, 'COD', null, null, null);
         return;
     }
 
-    // ── Razorpay flow ──
     try {
         const btn = document.getElementById('placeOrderBtn');
-        btn.disabled     = true;
-        btn.textContent  = '⏳ Processing...';
+        btn.disabled    = true;
+        btn.textContent = '⏳ Processing...';
 
-        // Step 1 — Create Razorpay order on backend
         const res  = await fetch('/api/create-razorpay-order', {
             method:  'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -118,7 +99,6 @@ async function placeOrder() {
             return;
         }
 
-        // Step 2 — Open Razorpay checkout popup
         const rzpKey = document.getElementById('rzpKeyHolder').getAttribute('data-key');
 
         const options = {
@@ -136,8 +116,13 @@ async function placeOrder() {
             theme: { color: '#2874f0' },
 
             handler: async function (response) {
-                // Step 3 — Payment success → save order to DB
-                await saveOrderToBackend(total, 'RAZORPAY', response.razorpay_payment_id);
+                await saveOrderToBackend(
+                    total,
+                    'RAZORPAY',
+                    response.razorpay_payment_id,
+                    response.razorpay_order_id,
+                    response.razorpay_signature
+                );
             },
 
             modal: {
@@ -159,18 +144,17 @@ async function placeOrder() {
     }
 }
 
-/* ══════════════════════════════════════
-   SAVE ORDER TO BACKEND
-══════════════════════════════════════ */
-async function saveOrderToBackend(total, paymentMethod, paymentId) {
+async function saveOrderToBackend(total, paymentMethod, paymentId, razorpayOrderId, razorpaySignature) {
     try {
         const res = await fetch('/api/save-order', {
             method:  'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                totalAmount:   total,
-                paymentMethod: paymentMethod,
-                paymentId:     paymentId,
+                totalAmount:       total,
+                paymentMethod:     paymentMethod,
+                paymentId:         paymentId,
+                razorpayOrderId:   razorpayOrderId,
+                razorpaySignature: razorpaySignature,
                 items: cart.map(i => ({
                     id:    i.id,
                     qty:   i.qty,
@@ -194,13 +178,10 @@ async function saveOrderToBackend(total, paymentMethod, paymentId) {
             return;
         }
 
-        // Clear cart
         sessionStorage.removeItem('retailhub_cart');
         cart = [];
 
-        // Show success overlay
-        document.getElementById('successOrderId').textContent =
-            'Order ID: ' + data.order_id;
+        document.getElementById('successOrderId').textContent = 'Order ID: ' + data.order_id;
         document.getElementById('successOverlay').classList.add('show');
 
     } catch (err) {

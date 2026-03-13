@@ -25,8 +25,7 @@ public class ProductImages {
     @JoinColumn(name = "product_id")
     @JsonIgnore
     private Product product;
-    
-    // getters & setters
+   
 
 	public ProductImages() {
 		super();

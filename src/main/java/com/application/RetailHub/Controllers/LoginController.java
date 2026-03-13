@@ -20,27 +20,22 @@ public class LoginController {
         this.authService = authService;
     }
 
-    // =====================================================
-    // 📄 PAGE ROUTES
-    // =====================================================
     @GetMapping("/login")
     public String loginPage() {
-        return "login";                // ✅ /auth/login → login.html
+        return "login";                
     }
 
     @GetMapping("/ForgetPassword")
     public String forgotPasswordPage() {
-        return "forgotpassword";       // ✅ /auth/ForgetPassword → ForgetPassword.html
+        return "forgotpassword";     
     }
 
     @GetMapping("/verify")
     public String verifyPage() {
-        return "verifyOtp";            // ✅ /auth/verify → verifyOtp.html
+        return "verifyOtp";           
     }
 
-    // =====================================================
-    // 🔐 NORMAL LOGIN
-    // =====================================================
+    
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody User user, HttpServletResponse response) {
         try {
@@ -53,7 +48,7 @@ public class LoginController {
             cookie.setMaxAge(3600);
             response.addCookie(cookie);
 
-            return ResponseEntity.ok(Map.of("message", "Login successful"));  // ✅ removed sendRedirect
+            return ResponseEntity.ok(Map.of("message", "Login successful"));  
 
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
@@ -61,9 +56,6 @@ public class LoginController {
         }
     }
 
-    // =====================================================
-    // 🔑 FORGOT PASSWORD - SEND OTP
-    // =====================================================
     @PostMapping("/forgot-password")
     public ResponseEntity<?> sendResetOtp(@RequestParam String email) {
         try {
@@ -74,9 +66,7 @@ public class LoginController {
         }
     }
 
-    // =====================================================
-    // ✅ VERIFY RESET OTP
-    // =====================================================
+
     @PostMapping("/verify-reset-otp")
     public ResponseEntity<?> verifyResetOtp(@RequestParam String email,
                                             @RequestParam String otp) {
@@ -88,9 +78,7 @@ public class LoginController {
         }
     }
 
-    // =====================================================
-    // 🔄 RESET PASSWORD
-    // =====================================================
+  
     @PostMapping("/reset-password")
     public ResponseEntity<?> resetPassword(@RequestParam String email,
                                            @RequestParam String newPassword,
@@ -107,12 +95,11 @@ public class LoginController {
     }
     @GetMapping("/logout")
     public String logout(HttpServletResponse response) {
-        // ✅ Clear the auth cookie
         Cookie cookie = new Cookie("authToken", null);
         cookie.setHttpOnly(true);
         cookie.setPath("/");
-        cookie.setMaxAge(0);  // ✅ delete cookie
+        cookie.setMaxAge(0);  
         response.addCookie(cookie);
-        return "redirect:/auth/login";  // ✅ back to login
+        return "redirect:/auth/login"; 
     }
 }

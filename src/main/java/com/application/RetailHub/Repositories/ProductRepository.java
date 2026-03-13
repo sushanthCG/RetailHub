@@ -8,7 +8,6 @@ import com.application.RetailHub.Entities.Product;
 
 public interface ProductRepository extends JpaRepository<Product, Integer> {
 
-    // Find all products by category
     @Query("SELECT p FROM Product p WHERE p.category.category_id = :categoryId")
     List<Product> findByCategoryId(@Param("categoryId") Integer categoryId);
 

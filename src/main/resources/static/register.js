@@ -1,16 +1,11 @@
-/* ═══════════════════════════════════════════
-   EYE TOGGLE
-═══════════════════════════════════════════ */
+
 function toggleEye(id, btn) {
     const inp = document.getElementById(id);
     inp.type = inp.type === 'password' ? 'text' : 'password';
     btn.textContent = inp.type === 'password' ? '👁' : '🙈';
 }
 
-/* ═══════════════════════════════════════════
-   EMAIL VALIDATION
-   Rule: @ must exist AND at least 5 chars before @
-═══════════════════════════════════════════ */
+
 document.getElementById('emailInput').addEventListener('input', function () {
     const val   = this.value;
     const atIdx = val.indexOf('@');
@@ -19,10 +14,7 @@ document.getElementById('emailInput').addEventListener('input', function () {
         (val.length > 0 && !valid) ? 'block' : 'none';
 });
 
-/* ═══════════════════════════════════════════
-   PASSWORD STRENGTH METER
-   Box is hidden — only shows when user types
-═══════════════════════════════════════════ */
+
 const COLORS = ['#dc3545', '#fd7e14', '#ffc107', '#28a745'];
 const LABELS = ['Weak',    'Fair',    'Good',    'Strong' ];
 
@@ -37,7 +29,6 @@ document.getElementById('password1').addEventListener('input', function () {
     const v    = this.value;
     const wrap = document.getElementById('strengthWrap');
 
-    /* Show box when typing, hide when field is empty */
     wrap.classList.toggle('visible', v.length > 0);
 
     let score = 0;
@@ -59,9 +50,7 @@ document.getElementById('password1').addEventListener('input', function () {
     label.style.color     = COLORS[score - 1] || '#888';
 });
 
-/* ═══════════════════════════════════════════
-   FORM SUBMIT — original logic untouched
-═══════════════════════════════════════════ */
+
 document.getElementById("registerForm").addEventListener("submit", function (e) {
     e.preventDefault();
 

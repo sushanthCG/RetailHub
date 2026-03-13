@@ -32,7 +32,7 @@ public class Product {
     private LocalDateTime created_at;
     private LocalDateTime updated_at;
 
-    // Relationships
+
 
     @ManyToOne
     @JoinColumn(name = "category_id")

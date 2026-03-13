@@ -5,6 +5,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +23,7 @@ import com.application.RetailHub.Entities.Order;
 import com.application.RetailHub.Entities.OrderItem;
 import com.application.RetailHub.Entities.Product;
 import com.application.RetailHub.Entities.User;
+import com.application.RetailHub.Repositories.CartRepository;
 import com.application.RetailHub.Repositories.OrderItemRepository;
 import com.application.RetailHub.Repositories.OrderRepository;
 import com.application.RetailHub.Repositories.ProductRepository;
@@ -38,29 +42,30 @@ public class OrderController {
     @Value("${razorpay.key.secret}")
     private String razorpayKeySecret;
 
-    private final OrderRepository      orderRepository;
-    private final OrderItemRepository  orderItemRepository;
-    private final ProductRepository    productRepository;
-    private final UserRepository       userRepository;
+    private final OrderRepository     orderRepository;
+    private final OrderItemRepository orderItemRepository;
+    private final ProductRepository   productRepository;
+    private final UserRepository      userRepository;
+    private final CartRepository      cartRepository;
 
     public OrderController(OrderRepository orderRepository,
                            OrderItemRepository orderItemRepository,
                            ProductRepository productRepository,
-                           UserRepository userRepository) {
+                           UserRepository userRepository,
+                           CartRepository cartRepository) {
         this.orderRepository     = orderRepository;
         this.orderItemRepository = orderItemRepository;
         this.productRepository   = productRepository;
         this.userRepository      = userRepository;
+        this.cartRepository      = cartRepository;
     }
 
-    // ── Checkout PAGE ──────────────────────────────
     @GetMapping("/checkout")
     public String checkoutPage(Model model) {
         model.addAttribute("razorpayKeyId", razorpayKeyId);
         return "order";
     }
 
-    // ── Create Razorpay Order (called from JS) ──────
     @PostMapping("/create-razorpay-order")
     @ResponseBody
     public ResponseEntity<?> createRazorpayOrder(@RequestBody Map<String, Object> body) {
@@ -86,17 +91,34 @@ public class OrderController {
         }
     }
 
-    // ── Save Order after Payment Success ───────────
     @PostMapping("/save-order")
     @ResponseBody
     public ResponseEntity<?> saveOrder(@RequestBody Map<String, Object> body,
                                        HttpServletRequest request) {
         try {
-            // Get username from JWT filter attribute
             String username = (String) request.getAttribute("username");
-            User user = userRepository.findByUsername(username);
+            User user = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
 
-            // Build Order
+            String paymentMethod = body.get("paymentMethod") != null ? body.get("paymentMethod").toString() : "";
+
+            if ("RAZORPAY".equals(paymentMethod)) {
+                String rzpOrderId   = body.get("razorpayOrderId").toString();
+                String rzpPaymentId = body.get("paymentId").toString();
+                String rzpSignature = body.get("razorpaySignature").toString();
+
+                String payload = rzpOrderId + "|" + rzpPaymentId;
+                Mac mac = Mac.getInstance("HmacSHA256");
+                mac.init(new SecretKeySpec(razorpayKeySecret.getBytes(), "HmacSHA256"));
+                byte[] hash = mac.doFinal(payload.getBytes());
+                StringBuilder computed = new StringBuilder();
+                for (byte b : hash) computed.append(String.format("%02x", b));
+
+                if (!computed.toString().equals(rzpSignature)) {
+                    return ResponseEntity.badRequest().body(Map.of("error", "Payment verification failed"));
+                }
+            }
+
             Order order = new Order();
             order.setOrder_id("ORD-" + UUID.randomUUID().toString().substring(0, 10).toUpperCase());
             order.setTotal_amount(Double.parseDouble(body.get("totalAmount").toString()));
@@ -106,9 +128,7 @@ public class OrderController {
             order.setUser(user);
             orderRepository.save(order);
 
-            // Save each OrderItem
-            List<Map<String, Object>> items =
-                (List<Map<String, Object>>) body.get("items");
+            List<Map<String, Object>> items = (List<Map<String, Object>>) body.get("items");
 
             for (Map<String, Object> item : items) {
                 Integer productId = Integer.parseInt(item.get("id").toString());
@@ -118,7 +138,10 @@ public class OrderController {
                 Product product = productRepository.findById(productId).orElse(null);
                 if (product == null) continue;
 
-                // Reduce stock
+                if (product.getStock() < qty) {
+                    return ResponseEntity.badRequest()
+                        .body(Map.of("error", "Insufficient stock for: " + product.getName()));
+                }
                 product.setStock(product.getStock() - qty);
                 productRepository.save(product);
 
@@ -130,6 +153,8 @@ public class OrderController {
                 oi.setTotal_price(price * qty);
                 orderItemRepository.save(oi);
             }
+
+            cartRepository.deleteByUserId(user.getUser_id());
 
             return ResponseEntity.ok(Map.of(
                 "message",  "Order placed successfully",
