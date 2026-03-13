@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Register - RetailHub</title>
+    <link rel="stylesheet" th:href="@{/style.css}">
+</head>
+<body>
+
+<div class="container">
+    <h2>✍️ Sign Up</h2>
+
+    <form id="registerForm">
+
+        <input type="text" name="username" placeholder="Username" required>
+
+        <input type="email" name="email" id="emailInput"
+               placeholder="Email address" required>
+        <div class="field-hint" id="emailHint">
+            ⚠️ Must contain @ with at least 5 characters before it
+        </div>
+
+        <div class="password-wrapper">
+            <input type="password" name="password1"
+                   id="password1" placeholder="Password" required>
+            <button type="button" class="eye-btn"
+                    onclick="toggleEye('password1', this)">👁</button>
+        </div>
+
+        <!-- Strength box — hidden until user types -->
+        <div class="strength-wrap" id="strengthWrap">
+            <div class="strength-bar">
+                <div class="fill" id="strengthFill"></div>
+            </div>
+            <div class="strength-label" id="strengthLabel"></div>
+            <div class="strength-rules">
+                <span id="r-len"     class="bad">✗ At least 8 characters</span>
+                <span id="r-upper"   class="bad">✗ At least 1 uppercase letter</span>
+                <span id="r-num"     class="bad">✗ At least 1 number</span>
+                <span id="r-special" class="bad">✗ At least 1 special character</span>
+            </div>
+        </div>
+
+        <div class="password-wrapper">
+            <input type="password" name="password2"
+                   id="password2" placeholder="Confirm Password" required>
+            <button type="button" class="eye-btn"
+                    onclick="toggleEye('password2', this)">👁</button>
+        </div>
+
+        <button type="submit">Create Account</button>
+    </form>
+
+    <div class="login-link">
+        Already have an account?
+        <a th:href="@{/auth/login}">Login here</a>
+    </div>
+</div>
+
+<div id="popupMessage" class="popup"></div>
+
+<script th:src="@{/register.js}"></script>
+</body>
+</html>

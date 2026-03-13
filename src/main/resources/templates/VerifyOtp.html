@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Reset Password</title>
+    <link rel="stylesheet" th:href="@{/style.css}">
+</head>
+<body>
+<div class="container">
+    <h2>🔒 Reset Password</h2>
+    <div id="emailDisplay"
+         style="background:#f0f0f0;padding:8px;border-radius:8px;
+                text-align:center;margin-bottom:16px;font-size:13px;">
+    </div>
+    <form id="verifyOtpForm">
+        <input type="password" id="newPassword"     placeholder="New Password"      required>
+        <input type="password" id="confirmPassword" placeholder="Re-enter Password" required>
+        <p id="errorMsg"   style="color:red;  display:none; margin-top:8px;"></p>
+        <p id="successMsg" style="color:green;display:none; margin-top:8px;"></p>
+        <button type="submit">Reset Password</button>
+    </form>
+    <div class="login-link">
+        <a th:href="@{/auth/ForgetPassword}">← Back</a>  <!-- ✅ -->
+    </div>
+</div>
+<script th:src="@{/verifyOtp.js}"></script>
+</body>
+</html>
