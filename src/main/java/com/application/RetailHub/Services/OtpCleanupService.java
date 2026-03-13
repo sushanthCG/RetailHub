@@ -14,7 +14,6 @@ public class OtpCleanupService {
         this.otpRepository = otpRepository;
     }
 
-    // ✅ Runs every 1 minute — deletes all expired OTPs
     @Scheduled(fixedRate = 60000)
     public void deleteExpiredOtps() {
         otpRepository.deleteExpiredOtps(LocalDateTime.now());

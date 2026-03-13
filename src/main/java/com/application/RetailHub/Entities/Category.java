@@ -33,7 +33,6 @@ public class Category {
 		this.products = products;
 	}
 
-	 // getters & setters
 
 		public Integer getCategory_id() {
 			return category_id;

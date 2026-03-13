@@ -54,9 +54,6 @@ public class AuthService {
         this.SIGNING_KEY = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
     }
 
-    // =====================================================
-    // 🔐 NORMAL LOGIN
-    // =====================================================
     public String loginAndGenerateToken(String email, String password) {
 
         User user = userRepository.findByEmail(email)
@@ -69,14 +66,10 @@ public class AuthService {
         return generateToken(user);
     }
 
-    // =====================================================
-    // 🔑 FORGOT PASSWORD - GENERATE OTP
-    // =====================================================
     public User generatePasswordResetOtp(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Email not found"));
 
-        // ✅ Delete old OTPs for this user before creating new one
         otpRepository.deleteByUserId(user.getUser_id());
 
         String otpCode = String.valueOf(new Random().nextInt(900000) + 100000);
@@ -97,15 +90,10 @@ public class AuthService {
         return user;
     }
 
-    // =====================================================
-    // ✅ VERIFY RESET OTP
-    // =====================================================
     public void verifyResetOtp(String email, String enteredOtp) {
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Email not found"));
-
-     // ✅ Must match new method name
+                .orElseThrow(()
         Otp otp = otpRepository.findLatestOtpByUserId(user.getUser_id())
                 .orElseThrow(() -> new RuntimeException("OTP not found"));
 
@@ -116,9 +104,7 @@ public class AuthService {
             throw new RuntimeException("Invalid OTP");
     }
 
-    // =====================================================
-    // 🔄 RESET PASSWORD
-    // =====================================================
+  
     public void resetPassword(String email, String newPassword) {
 
         User user = userRepository.findByEmail(email)
@@ -128,9 +114,6 @@ public class AuthService {
         userRepository.save(user);
     }
 
-    // =====================================================
-    // 🎟 JWT TOKEN GENERATION
-    // =====================================================
     private String generateToken(User user) {
 
         LocalDateTime now = LocalDateTime.now();

@@ -53,14 +53,14 @@ public class OrderController {
         this.userRepository      = userRepository;
     }
 
-    // ── Checkout PAGE ──────────────────────────────
+   
     @GetMapping("/checkout")
     public String checkoutPage(Model model) {
         model.addAttribute("razorpayKeyId", razorpayKeyId);
         return "order";
     }
 
-    // ── Create Razorpay Order (called from JS) ──────
+   
     @PostMapping("/create-razorpay-order")
     @ResponseBody
     public ResponseEntity<?> createRazorpayOrder(@RequestBody Map<String, Object> body) {
@@ -86,17 +86,16 @@ public class OrderController {
         }
     }
 
-    // ── Save Order after Payment Success ───────────
     @PostMapping("/save-order")
     @ResponseBody
     public ResponseEntity<?> saveOrder(@RequestBody Map<String, Object> body,
                                        HttpServletRequest request) {
         try {
-            // Get username from JWT filter attribute
+           
             String username = (String) request.getAttribute("username");
             User user = userRepository.findByUsername(username);
 
-            // Build Order
+         
             Order order = new Order();
             order.setOrder_id("ORD-" + UUID.randomUUID().toString().substring(0, 10).toUpperCase());
             order.setTotal_amount(Double.parseDouble(body.get("totalAmount").toString()));
@@ -106,7 +105,6 @@ public class OrderController {
             order.setUser(user);
             orderRepository.save(order);
 
-            // Save each OrderItem
             List<Map<String, Object>> items =
                 (List<Map<String, Object>>) body.get("items");
 
@@ -118,7 +116,7 @@ public class OrderController {
                 Product product = productRepository.findById(productId).orElse(null);
                 if (product == null) continue;
 
-                // Reduce stock
+              
                 product.setStock(product.getStock() - qty);
                 productRepository.save(product);
 

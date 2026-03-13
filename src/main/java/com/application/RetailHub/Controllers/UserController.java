@@ -25,10 +25,7 @@ public class UserController {
         this.productRepository = productRepository;
     }
 
-    // ───────────────────────────────────────────
-    // PAGE ROUTES
-    // ───────────────────────────────────────────
-
+  
     @GetMapping("/")
     public String homePage() {
         return "login";
@@ -51,9 +48,7 @@ public class UserController {
         return "products";
     }
 
-    // ───────────────────────────────────────────
-    // API — Register User
-    // ───────────────────────────────────────────
+  
 
     @PostMapping("/register")
     @ResponseBody

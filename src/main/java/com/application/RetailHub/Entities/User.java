@@ -29,7 +29,6 @@ public class User {
     private LocalDateTime created_at;
     private LocalDateTime updated_at;
 
-    // Relationships
     @OneToMany(mappedBy = "user")
     private List<Order> orders;
 
@@ -39,32 +38,24 @@ public class User {
     @OneToMany(mappedBy = "user")
     private List<JwtToken> tokens;
 
-    // ENUM
-    public enum Role {
-        ADMIN,
-        CUSTOMER
-    }
-
-    // 🔥 AUTOMATIC DEFAULT VALUES
     @PrePersist
     public void prePersist() {
         if (this.role == null) {
-            this.role = Role.CUSTOMER;   // 🔥 Automatically set CUSTOMER
+            this.role = Role.CUSTOMER;   
         }
         this.created_at = LocalDateTime.now();
         this.updated_at = LocalDateTime.now();
     }
 
-    // 🔥 Automatically update time on update
+
     @PreUpdate
     public void preUpdate() {
         this.updated_at = LocalDateTime.now();
     }
 
-    // Constructors
     public User() {}
 
-    // Getters & Setters
+
     public Integer getUser_id() {
         return user_id;
     }
