@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Checkout - RetailHub</title>
+    <link rel="stylesheet" th:href="@{/style.css}">
+    <link rel="stylesheet" th:href="@{/order.css}">
+    <!-- Razorpay SDK -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</head>
+<body>
+
+<!-- ══ NAVBAR ══ -->
+<nav class="navbar">
+    <div class="brand">🛒 Retail<span>Hub</span></div>
+    <div class="nav-steps">
+        <span class="step done">1 Cart</span>
+        <span class="arrow">›</span>
+        <span class="step active">2 Checkout</span>
+        <span class="arrow">›</span>
+        <span class="step">3 Confirmation</span>
+    </div>
+    <a href="/api/products-page" class="back-link">← Back to Shopping</a>
+</nav>
+
+<!-- ══ MAIN LAYOUT ══ -->
+<div class="checkout-layout">
+
+    <!-- LEFT — Address + Payment -->
+    <div class="checkout-left">
+
+        <!-- Delivery Address -->
+        <div class="section-card">
+            <div class="section-head">📍 Delivery Address</div>
+            <div class="form-grid">
+                <input type="text"  id="fullName"  placeholder="Full Name *" required>
+                <input type="tel"   id="phone"     placeholder="Phone Number *" required>
+                <input type="text"  id="address"   placeholder="Address / Flat / Street *" required class="full">
+                <input type="text"  id="city"      placeholder="City *" required>
+                <input type="text"  id="state"     placeholder="State *" required>
+                <input type="text"  id="pincode"   placeholder="Pincode *" required>
+            </div>
+        </div>
+
+        <!-- Payment Method -->
+        <div class="section-card">
+            <div class="section-head">💳 Payment Method</div>
+            <div class="pay-options">
+
+                <label class="pay-option selected" id="opt-razorpay">
+                    <input type="radio" name="payment" value="razorpay" checked>
+                    <div class="pay-icon">💳</div>
+                    <div>
+                        <div class="pay-title">Pay Online</div>
+                        <div class="pay-sub">UPI / Card / Net Banking / Wallet</div>
+                    </div>
+                    <div class="pay-badge">Recommended</div>
+                </label>
+
+                <label class="pay-option" id="opt-cod">
+                    <input type="radio" name="payment" value="cod">
+                    <div class="pay-icon">💵</div>
+                    <div>
+                        <div class="pay-title">Cash on Delivery</div>
+                        <div class="pay-sub">Pay when order arrives</div>
+                    </div>
+                </label>
+
+            </div>
+        </div>
+
+        <!-- Place Order Button -->
+        <button class="place-order-btn" id="placeOrderBtn" onclick="placeOrder()">
+            🔒 Place Order &amp; Pay
+        </button>
+
+    </div>
+
+    <!-- RIGHT — Order Summary -->
+    <div class="checkout-right">
+        <div class="section-card">
+            <div class="section-head">🛍️ Order Summary</div>
+
+            <!-- Items list populated by JS -->
+            <div id="summaryItems"></div>
+
+            <div class="summary-divider"></div>
+
+            <div class="summary-row">
+                <span>Subtotal</span>
+                <span id="summarySubtotal">₹0</span>
+            </div>
+            <div class="summary-row">
+                <span>Delivery</span>
+                <span class="free">FREE</span>
+            </div>
+            <div class="summary-row total">
+                <span>Total</span>
+                <span id="summaryTotal">₹0</span>
+            </div>
+
+            <div class="secure-badge">🔒 100% Secure Payments</div>
+        </div>
+    </div>
+
+</div>
+
+<!-- ══ SUCCESS OVERLAY ══ -->
+<div class="success-overlay" id="successOverlay">
+    <div class="success-card">
+        <div class="success-icon">✅</div>
+        <h2>Order Placed!</h2>
+        <p>Your order has been placed successfully.</p>
+        <div class="success-order-id" id="successOrderId"></div>
+        <button onclick="window.location.href='/api/products-page'" class="continue-btn">
+            Continue Shopping →
+        </button>
+    </div>
+</div>
+
+<!-- Pass Razorpay key from backend to JS -->
+<div id="rzpKeyHolder"
+     th:attr="data-key=${razorpayKeyId}"
+     style="display:none"></div>
+
+<script th:src="@{/order.js}"></script>
+</body>
+</html>
