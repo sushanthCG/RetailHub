@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>My Orders - RetailHub</title>
+    <link rel="stylesheet" th:href="@{/style.css}">
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="brand">🛒 Retail<span>Hub</span></div>
+    <div class="nav-right">
+        <a href="/api/products-page" style="color:white;text-decoration:none">
+            ← Continue Shopping
+        </a>
+        &nbsp;&nbsp;
+        <a href="/auth/logout" style="color:white;text-decoration:none">
+            🚪 Logout
+        </a>
+    </div>
+</nav>
+
+<div style="max-width:900px;margin:40px auto;padding:0 20px">
+    <h2>📦 My Orders</h2>
+    <div id="ordersContainer">Loading...</div>
+</div>
+
+<script>
+fetch('/api/my-orders-data')
+  .then(res => res.json())
+  .then(orders => {
+    const container = document.getElementById('ordersContainer');
+    if (!orders.length) {
+      container.innerHTML = '<p>No orders yet. <a href="/api/products-page">Shop now →</a></p>';
+      return;
+    }
+    container.innerHTML = orders.map(order => `
+      <div style="border:1px solid #ddd;border-radius:10px;padding:20px;margin-bottom:20px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:10px">
+          <strong>${order.orderId}</strong>
+          <span style="background:${statusColor(order.status)};
+                       color:white;padding:4px 12px;border-radius:20px;font-size:13px">
+            ${order.status}
+          </span>
+        </div>
+        <div style="color:#666;font-size:13px;margin-bottom:10px">
+          Placed on: ${new Date(order.createdAt).toLocaleDateString('en-IN')}
+        </div>
+        <table style="width:100%;border-collapse:collapse">
+          <tr style="background:#f5f5f5">
+            <th style="padding:8px;text-align:left">Product</th>
+            <th style="padding:8px;text-align:center">Qty</th>
+            <th style="padding:8px;text-align:right">Price</th>
+            <th style="padding:8px;text-align:right">Total</th>
+          </tr>
+          ${order.items.map(item => `
+            <tr style="border-bottom:1px solid #eee">
+              <td style="padding:8px">${item.productName}</td>
+              <td style="padding:8px;text-align:center">${item.qty}</td>
+              <td style="padding:8px;text-align:right">₹${item.price}</td>
+              <td style="padding:8px;text-align:right">₹${item.total}</td>
+            </tr>
+          `).join('')}
+        </table>
+        <div style="text-align:right;margin-top:10px;font-weight:bold">
+          Order Total: ₹${order.totalAmount}
+        </div>
+      </div>
+    `).join('');
+  });
+
+function statusColor(status) {
+    if (status === 'SUCCESS')   return '#1D9E75';
+    if (status === 'PENDING')   return '#BA7517';
+    if (status === 'FAILED')    return '#E24B4A';
+    return '#888';
+}
+</script>
+</body>
+</html>

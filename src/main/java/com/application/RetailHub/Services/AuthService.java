@@ -4,6 +4,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.Map;
 import java.util.Random;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,7 +55,7 @@ public class AuthService {
     }
 
     
-    public String loginAndGenerateToken(String email, String password) {
+    public Map<String, String> loginAndGenerateToken(String email, String password) {
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Email not found"));
@@ -63,9 +64,13 @@ public class AuthService {
             throw new RuntimeException("Invalid password");
         }
 
-        return generateToken(user);
-    }
+        String token = generateToken(user);
 
+        return Map.of(
+            "token", token,
+            "role",  user.getRole().name()
+        );
+    }
 
     public User generatePasswordResetOtp(String email) {
         User user = userRepository.findByEmail(email)

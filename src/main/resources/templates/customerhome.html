@@ -20,7 +20,7 @@
             <button class="profile-btn" onclick="toggleDrop()">👤 Account ▾</button>
             <div class="drop-menu" id="dropMenu">
                 <a href="#">👤 &nbsp;My Profile</a>
-                <a href="#">📦 &nbsp;My Orders</a>
+                <a href="/api/my-orders">📦 &nbsp;My Orders</a>
                 <a href="#">⚙️ &nbsp;Settings</a>
                 <div class="divider"></div>
                 <a href="/auth/logout" class="logout">🚪 &nbsp;Logout</a>
@@ -131,7 +131,7 @@
             <span>Total</span>
             <span id="cartTotal">₹0</span>
         </div>
-        <button class="checkout-btn">Proceed to Checkout →</button>
+        <button class="checkout-btn" onclick="window.location.href='/api/checkout'">Proceed to Checkout →</button>
     </div>
 </div>
 

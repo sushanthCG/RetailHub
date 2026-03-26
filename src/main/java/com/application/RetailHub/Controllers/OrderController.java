@@ -90,7 +90,6 @@ public class OrderController {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
-
     @PostMapping("/save-order")
     @ResponseBody
     public ResponseEntity<?> saveOrder(@RequestBody Map<String, Object> body,
@@ -100,7 +99,25 @@ public class OrderController {
             User user = userRepository.findByUsername(username)
                     .orElseThrow(() -> new RuntimeException("User not found"));
 
-            String paymentMethod = body.get("paymentMethod") != null ? body.get("paymentMethod").toString() : "";
+            List<Map<String, Object>> items =
+                    (List<Map<String, Object>>) body.get("items");
+
+            for (Map<String, Object> item : items) {
+                Integer productId = Integer.parseInt(item.get("id").toString());
+                Integer qty       = Integer.parseInt(item.get("qty").toString());
+
+                Product product = productRepository.findById(productId)
+                        .orElseThrow(() -> new RuntimeException("Product not found"));
+
+                if (product.getStock() < qty) {
+                    return ResponseEntity.badRequest()
+                            .body(Map.of("error", "Insufficient stock for: "
+                                    + product.getName()));
+                }
+            }
+
+            String paymentMethod = body.get("paymentMethod") != null
+                    ? body.get("paymentMethod").toString() : "";
 
             if ("RAZORPAY".equals(paymentMethod)) {
                 String rzpOrderId   = body.get("razorpayOrderId").toString();
@@ -115,33 +132,31 @@ public class OrderController {
                 for (byte b : hash) computed.append(String.format("%02x", b));
 
                 if (!computed.toString().equals(rzpSignature)) {
-                    return ResponseEntity.badRequest().body(Map.of("error", "Payment verification failed"));
+                    return ResponseEntity.badRequest()
+                            .body(Map.of("error", "Payment verification failed"));
                 }
             }
 
+
             Order order = new Order();
-            order.setOrder_id("ORD-" + UUID.randomUUID().toString().substring(0, 10).toUpperCase());
-            order.setTotal_amount(Double.parseDouble(body.get("totalAmount").toString()));
-            order.setStatus(Order.Status.SUCCESS);
+            order.setOrder_id("ORD-" + UUID.randomUUID().toString()
+                    .substring(0, 10).toUpperCase());
+            order.setTotal_amount(Double.parseDouble(
+                    body.get("totalAmount").toString()));
+            order.setStatus("COD".equals(paymentMethod) 
+            	    ? Order.Status.PENDING 
+            	    : Order.Status.SUCCESS);
             order.setCreated_at(LocalDateTime.now());
             order.setUpdated_at(LocalDateTime.now());
             order.setUser(user);
             orderRepository.save(order);
-
-            List<Map<String, Object>> items = (List<Map<String, Object>>) body.get("items");
 
             for (Map<String, Object> item : items) {
                 Integer productId = Integer.parseInt(item.get("id").toString());
                 Integer qty       = Integer.parseInt(item.get("qty").toString());
                 Double  price     = Double.parseDouble(item.get("price").toString());
 
-                Product product = productRepository.findById(productId).orElse(null);
-                if (product == null) continue;
-
-                if (product.getStock() < qty) {
-                    return ResponseEntity.badRequest()
-                        .body(Map.of("error", "Insufficient stock for: " + product.getName()));
-                }
+                Product product = productRepository.findById(productId).get();
                 product.setStock(product.getStock() - qty);
                 productRepository.save(product);
 
@@ -161,6 +176,35 @@ public class OrderController {
                 "order_id", order.getOrder_id()
             ));
 
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+    @GetMapping("/my-orders-data")
+    @ResponseBody
+    public ResponseEntity<?> getMyOrders(HttpServletRequest request) {
+        try {
+            String username = (String) request.getAttribute("username");
+            User user = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            List<Order> orders = orderRepository.findByUserIdOrderByCreatedAtDesc(
+                    user.getUser_id());
+
+            List<Map<String, Object>> result = orders.stream().map(order -> Map.of(
+                "orderId",     (Object) order.getOrder_id(),
+                "totalAmount", order.getTotal_amount(),
+                "status",      order.getStatus().name(),
+                "createdAt",   order.getCreated_at().toString(),
+                "items",       order.getItems().stream().map(item -> Map.of(
+                    "productName", item.getProduct().getName(),
+                    "qty",         item.getQuantity(),
+                    "price",       item.getPrice_per_unit(),
+                    "total",       item.getTotal_price()
+                )).collect(java.util.stream.Collectors.toList())
+            )).collect(java.util.stream.Collectors.toList());
+
+            return ResponseEntity.ok(result);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }

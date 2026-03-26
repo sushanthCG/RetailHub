@@ -37,19 +37,23 @@ public class LoginController {
 
     
     @PostMapping("/login")
+    @ResponseBody
     public ResponseEntity<?> login(@RequestBody User user, HttpServletResponse response) {
         try {
-            String token = authService.loginAndGenerateToken(user.getEmail(), user.getPassword());
+            Map<String, String> result = authService.loginAndGenerateToken(
+                    user.getEmail(), user.getPassword());
 
-            Cookie cookie = new Cookie("authToken", token);
+            Cookie cookie = new Cookie("authToken", result.get("token"));
             cookie.setHttpOnly(true);
             cookie.setSecure(false);
             cookie.setPath("/");
             cookie.setMaxAge(3600);
             response.addCookie(cookie);
 
-            return ResponseEntity.ok(Map.of("message", "Login successful"));  
-
+            return ResponseEntity.ok(Map.of(
+                "message", "Login successful",
+                "role", result.get("role") 
+            ));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("error", e.getMessage()));
@@ -57,6 +61,7 @@ public class LoginController {
     }
 
     @PostMapping("/forgot-password")
+    @ResponseBody
     public ResponseEntity<?> sendResetOtp(@RequestParam String email) {
         try {
             authService.generatePasswordResetOtp(email);
@@ -68,6 +73,7 @@ public class LoginController {
 
 
     @PostMapping("/verify-reset-otp")
+    @ResponseBody
     public ResponseEntity<?> verifyResetOtp(@RequestParam String email,
                                             @RequestParam String otp) {
         try {
@@ -80,6 +86,7 @@ public class LoginController {
 
   
     @PostMapping("/reset-password")
+    @ResponseBody
     public ResponseEntity<?> resetPassword(@RequestParam String email,
                                            @RequestParam String newPassword,
                                            @RequestParam String confirmPassword) {

@@ -47,7 +47,11 @@ public class UserController {
         model.addAttribute("products", productRepository.findAll());
         return "products";
     }
-
+    
+    @GetMapping("/my-orders")
+    public String myOrdersPage() {
+        return "myorders"; 
+    }
 
     @PostMapping("/register")
     @ResponseBody
