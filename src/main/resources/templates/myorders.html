@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>My Orders - RetailHub</title>
     <link rel="stylesheet" th:href="@{/style.css}">
+    <link rel="stylesheet" th:href="@{/orders.css}">
 </head>
 <body>
 
@@ -20,8 +21,8 @@
     </div>
 </nav>
 
-<div style="max-width:900px;margin:40px auto;padding:0 20px">
-    <h2>📦 My Orders</h2>
+<div class="page-wrapper">
+    <div class="page-title">📦 My Orders</div>
     <div id="ordersContainer">Loading...</div>
 </div>
 
@@ -31,50 +32,45 @@ fetch('/api/my-orders-data')
   .then(orders => {
     const container = document.getElementById('ordersContainer');
     if (!orders.length) {
-      container.innerHTML = '<p>No orders yet. <a href="/api/products-page">Shop now →</a></p>';
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="icon">📦</div>
+          <p>No orders yet.</p>
+          <a href="/api/products-page">Shop Now →</a>
+        </div>`;
       return;
     }
     container.innerHTML = orders.map(order => `
-      <div style="border:1px solid #ddd;border-radius:10px;padding:20px;margin-bottom:20px">
-        <div style="display:flex;justify-content:space-between;margin-bottom:10px">
-          <strong>${order.orderId}</strong>
-          <span style="background:${statusColor(order.status)};
-                       color:white;padding:4px 12px;border-radius:20px;font-size:13px">
-            ${order.status}
-          </span>
+      <div class="order-card">
+        <div class="order-header">
+          <div>
+            <div class="order-id">${order.orderId}</div>
+            <div class="order-date">Placed on: ${new Date(order.createdAt).toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'})}</div>
+          </div>
+          <span class="status-badge status-${order.status}">${order.status}</span>
         </div>
-        <div style="color:#666;font-size:13px;margin-bottom:10px">
-          Placed on: ${new Date(order.createdAt).toLocaleDateString('en-IN')}
-        </div>
-        <table style="width:100%;border-collapse:collapse">
-          <tr style="background:#f5f5f5">
-            <th style="padding:8px;text-align:left">Product</th>
-            <th style="padding:8px;text-align:center">Qty</th>
-            <th style="padding:8px;text-align:right">Price</th>
-            <th style="padding:8px;text-align:right">Total</th>
-          </tr>
+        <div class="order-items">
+          <div class="item-row" style="background:#f8f9ff;font-weight:600;font-size:12px;color:#888;text-transform:uppercase;letter-spacing:0.5px;padding:10px 0;">
+            <span class="item-name">Product</span>
+            <span class="item-qty">Qty</span>
+            <span class="item-price">Unit Price</span>
+            <span class="item-total">Total</span>
+          </div>
           ${order.items.map(item => `
-            <tr style="border-bottom:1px solid #eee">
-              <td style="padding:8px">${item.productName}</td>
-              <td style="padding:8px;text-align:center">${item.qty}</td>
-              <td style="padding:8px;text-align:right">₹${item.price}</td>
-              <td style="padding:8px;text-align:right">₹${item.total}</td>
-            </tr>
+            <div class="item-row">
+              <span class="item-name">${item.productName}</span>
+              <span class="item-qty">× ${item.qty}</span>
+              <span class="item-price">₹${item.price}</span>
+              <span class="item-total">₹${item.total}</span>
+            </div>
           `).join('')}
-        </table>
-        <div style="text-align:right;margin-top:10px;font-weight:bold">
-          Order Total: ₹${order.totalAmount}
+        </div>
+        <div class="order-footer">
+          <div class="order-total"><span>Order Total:</span>₹${order.totalAmount}</div>
         </div>
       </div>
     `).join('');
   });
-
-function statusColor(status) {
-    if (status === 'SUCCESS')   return '#1D9E75';
-    if (status === 'PENDING')   return '#BA7517';
-    if (status === 'FAILED')    return '#E24B4A';
-    return '#888';
-}
 </script>
 </body>
 </html>

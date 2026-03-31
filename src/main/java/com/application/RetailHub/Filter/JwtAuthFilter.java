@@ -45,7 +45,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         "/ForgetPassword.js", "/verifyOtp.js",
         "/order.css", "/order.js",
         "/customerhome.css", "/customerhome.js",
-        "/products.css", "/products.js"
+        "/products.css", "/orders.css"
     );
 
     @Override
