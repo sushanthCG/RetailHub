@@ -156,7 +156,7 @@ public class OrderController {
                 Integer qty       = Integer.parseInt(item.get("qty").toString());
                 Double  price     = Double.parseDouble(item.get("price").toString());
 
-                Product product = productRepository.findById(productId).get();
+                Product product = productRepository.findById(productId).orElseThrow(() -> new RuntimeException("Product not found"));
                 product.setStock(product.getStock() - qty);
                 productRepository.save(product);
 
