@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard — RetailHub</title>
+    <link rel="stylesheet" th:href="@{/admin.css}">
+</head>
+<body>
+
+<!-- ══ TOPBAR ══ -->
+<header class="topbar">
+    <div class="topbar-brand">🛒 Retail<span>Hub</span></div>
+    <span class="topbar-badge">Admin</span>
+    <div class="topbar-spacer"></div>
+    <div class="topbar-right">
+        <div class="topbar-admin">
+            <div class="admin-avatar">👤</div>
+            <span>Administrator</span>
+        </div>
+        <a href="/auth/logout" class="topbar-logout">Sign Out</a>
+    </div>
+</header>
+
+<!-- ══ LAYOUT ══ -->
+<div class="layout">
+
+    <!-- ══ SIDEBAR ══ -->
+    <aside class="sidebar">
+        <div class="sidebar-label">Overview</div>
+        <button class="nav-item active" onclick="switchTab('overview', this)">
+            <span class="icon">📊</span> Dashboard
+        </button>
+
+        <div class="sidebar-label">Management</div>
+        <button class="nav-item" onclick="switchTab('orders', this)">
+            <span class="icon">📦</span> Orders
+            <span class="nav-badge" id="pendingBadge">0</span>
+        </button>
+        <button class="nav-item" onclick="switchTab('products', this)">
+            <span class="icon">🛍️</span> Products
+        </button>
+        <button class="nav-item" onclick="switchTab('users', this)">
+            <span class="icon">👥</span> Users
+        </button>
+
+        <div class="sidebar-label">Store</div>
+        <a href="/api/products-page" class="nav-item">
+            <span class="icon">🔗</span> View Store
+        </a>
+    </aside>
+
+    <!-- ══ MAIN ══ -->
+    <main class="main">
+
+        <!-- ══ OVERVIEW TAB ══ -->
+        <div class="tab-panel active" id="tab-overview">
+            <div class="page-header">
+                <div>
+                    <div class="page-title"><span class="icon">📊</span> Dashboard</div>
+                    <div class="page-subtitle">Welcome back, Administrator</div>
+                </div>
+            </div>
+
+            <div class="stats-grid" id="statsGrid">
+                <div class="stat-card">
+                    <div class="stat-icon blue">📦</div>
+                    <div class="stat-info">
+                        <div class="stat-val" id="statOrders">—</div>
+                        <div class="stat-label">Total Orders</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon green">₹</div>
+                    <div class="stat-info">
+                        <div class="stat-val" id="statRevenue">—</div>
+                        <div class="stat-label">Total Revenue</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon orange">🛍️</div>
+                    <div class="stat-info">
+                        <div class="stat-val" id="statProducts">—</div>
+                        <div class="stat-label">Products</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon blue">👥</div>
+                    <div class="stat-info">
+                        <div class="stat-val" id="statUsers">—</div>
+                        <div class="stat-label">Registered Users</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon amber">⏳</div>
+                    <div class="stat-info">
+                        <div class="stat-val" id="statPending">—</div>
+                        <div class="stat-label">Pending Orders</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Orders Preview -->
+            <div class="page-header" style="margin-bottom:16px">
+                <div class="page-title" style="font-size:16px">Recent Orders</div>
+                <button class="btn btn-outline btn-sm" onclick="switchTab('orders', document.querySelector('[onclick*=\"orders\"]'))">
+                    View All →
+                </button>
+            </div>
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Customer</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recentOrdersBody">
+                        <tr class="loading-row"><td colspan="5"><span class="spinner"></span> Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ══ ORDERS TAB ══ -->
+        <div class="tab-panel" id="tab-orders">
+            <div class="page-header">
+                <div>
+                    <div class="page-title"><span class="icon">📦</span> Orders</div>
+                    <div class="page-subtitle">Manage and update order statuses</div>
+                </div>
+            </div>
+
+            <div class="toolbar">
+                <input type="text" class="search-input" id="orderSearch" placeholder="Search by Order ID or customer..." oninput="filterOrders()">
+                <select class="filter-select" id="orderStatusFilter" onchange="filterOrders()">
+                    <option value="">All Statuses</option>
+                    <option value="PENDING">Pending</option>
+                    <option value="SUCCESS">Success</option>
+                    <option value="FAILED">Failed</option>
+                </select>
+            </div>
+
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Customer</th>
+                            <th>Items</th>
+                            <th>Amount</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ordersBody">
+                        <tr class="loading-row"><td colspan="7"><span class="spinner"></span> Loading orders...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ══ PRODUCTS TAB ══ -->
+        <div class="tab-panel" id="tab-products">
+            <div class="page-header">
+                <div>
+                    <div class="page-title"><span class="icon">🛍️</span> Products</div>
+                    <div class="page-subtitle">Edit stock, price and product details</div>
+                </div>
+            </div>
+
+            <div class="toolbar">
+                <input type="text" class="search-input" id="productSearch"
+                       placeholder="Search products..." oninput="filterProducts()">
+                <select class="filter-select" id="productCatFilter" onchange="filterProducts()">
+                    <option value="">All Categories</option>
+                </select>
+            </div>
+
+            <div class="products-admin-grid" id="productsGrid">
+                <div style="grid-column:1/-1;text-align:center;padding:60px;color:#9e9e9e">
+                    <span class="spinner"></span> Loading products...
+                </div>
+            </div>
+        </div>
+
+        <!-- ══ USERS TAB ══ -->
+        <div class="tab-panel" id="tab-users">
+            <div class="page-header">
+                <div>
+                    <div class="page-title"><span class="icon">👥</span> Users</div>
+                    <div class="page-subtitle">All registered customers and admins</div>
+                </div>
+            </div>
+
+            <div class="toolbar">
+                <input type="text" class="search-input" id="userSearch"
+                       placeholder="Search by name or email..." oninput="filterUsers()">
+                <select class="filter-select" id="userRoleFilter" onchange="filterUsers()">
+                    <option value="">All Roles</option>
+                    <option value="CUSTOMER">Customer</option>
+                    <option value="ADMIN">Admin</option>
+                </select>
+            </div>
+
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Role</th>
+                            <th>Joined</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersBody">
+                        <tr class="loading-row"><td colspan="3"><span class="spinner"></span> Loading users...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<!-- ══ EDIT PRODUCT MODAL ══ -->
+<div class="modal-overlay" id="editModal">
+    <div class="modal">
+        <div class="modal-head">
+            <div class="modal-title">✏️ Edit Product</div>
+            <button class="modal-close" onclick="closeModal()">✕</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="editProductId">
+            <div class="form-group">
+                <label class="form-label">Product Name</label>
+                <input type="text" class="form-control" id="editName">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Description</label>
+                <textarea class="form-control" id="editDescription"></textarea>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                <div class="form-group">
+                    <label class="form-label">Price (₹)</label>
+                    <input type="number" class="form-control" id="editPrice" min="0" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Stock</label>
+                    <input type="number" class="form-control" id="editStock" min="0">
+                </div>
+            </div>
+        </div>
+        <div class="modal-foot">
+            <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="saveProduct()">Save Changes</button>
+        </div>
+    </div>
+</div>
+
+<!-- ══ ORDER ITEMS MODAL ══ -->
+<div class="modal-overlay" id="orderItemsModal">
+    <div class="modal">
+        <div class="modal-head">
+            <div class="modal-title">📦 Order Items</div>
+            <button class="modal-close" onclick="closeOrderModal()">✕</button>
+        </div>
+        <div class="modal-body" id="orderItemsBody"></div>
+        <div class="modal-foot">
+            <button class="btn btn-outline" onclick="closeOrderModal()">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- ══ TOAST ══ -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── DATA ──
+let allOrders   = [];
+let allProducts = [];
+let allUsers    = [];
+
+// ── INIT ──
+document.addEventListener('DOMContentLoaded', () => {
+    loadStats();
+    loadRecentOrders();
+});
+
+// ── TAB SWITCH ──
+function switchTab(name, btn) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    if (btn) btn.classList.add('active');
+
+    if (name === 'orders'   && !allOrders.length)   loadOrders();
+    if (name === 'products' && !allProducts.length)  loadProducts();
+    if (name === 'users'    && !allUsers.length)     loadUsers();
+}
+
+// ── STATS ──
+async function loadStats() {
+    try {
+        const res  = await fetch('/admin/stats');
+        const data = await res.json();
+        document.getElementById('statOrders').textContent   = data.totalOrders;
+        document.getElementById('statRevenue').textContent  = '₹' + Number(data.totalRevenue).toLocaleString('en-IN', {maximumFractionDigits:0});
+        document.getElementById('statProducts').textContent = data.totalProducts;
+        document.getElementById('statUsers').textContent    = data.totalUsers;
+        document.getElementById('statPending').textContent  = data.pendingOrders;
+        document.getElementById('pendingBadge').textContent = data.pendingOrders;
+        if (data.pendingOrders === 0) document.getElementById('pendingBadge').style.display = 'none';
+    } catch(e) { showToast('Failed to load stats', 'error'); }
+}
+
+// ── RECENT ORDERS ──
+async function loadRecentOrders() {
+    try {
+        const res    = await fetch('/admin/orders');
+        const orders = await res.json();
+        const recent = orders.slice(0, 6);
+        const body   = document.getElementById('recentOrdersBody');
+        if (!recent.length) {
+            body.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:40px;color:#9e9e9e">No orders yet</td></tr>`;
+            return;
+        }
+        body.innerHTML = recent.map(o => `
+            <tr>
+                <td><span style="font-family:'DM Mono',monospace;font-size:12px;color:#2874f0;font-weight:600">${o.orderId}</span></td>
+                <td>${o.username}</td>
+                <td style="font-weight:700">₹${Number(o.totalAmount).toLocaleString('en-IN')}</td>
+                <td>${statusBadge(o.status)}</td>
+                <td style="color:#9e9e9e;font-size:12px">${formatDate(o.createdAt)}</td>
+            </tr>
+        `).join('');
+    } catch(e) { console.error(e); }
+}
+
+// ── ORDERS ──
+async function loadOrders() {
+    try {
+        const res   = await fetch('/admin/orders');
+        allOrders   = await res.json();
+        renderOrders(allOrders);
+    } catch(e) { showToast('Failed to load orders', 'error'); }
+}
+
+function renderOrders(orders) {
+    const body = document.getElementById('ordersBody');
+    if (!orders.length) {
+        body.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:50px;color:#9e9e9e">No orders found</td></tr>`;
+        return;
+    }
+    body.innerHTML = orders.map(o => `
+        <tr>
+            <td><span style="font-family:'DM Mono',monospace;font-size:12px;color:#2874f0;font-weight:600">${o.orderId}</span></td>
+            <td>
+                <div style="font-weight:600;font-size:13px">${o.username}</div>
+                <div style="font-size:11px;color:#9e9e9e">${o.email}</div>
+            </td>
+            <td>
+                <button class="btn btn-outline btn-sm" onclick='showOrderItems(${JSON.stringify(o)})'>
+                    ${o.items.length} item${o.items.length !== 1 ? 's' : ''}
+                </button>
+            </td>
+            <td style="font-weight:700;font-size:14px">₹${Number(o.totalAmount).toLocaleString('en-IN')}</td>
+            <td style="color:#9e9e9e;font-size:12px">${formatDate(o.createdAt)}</td>
+            <td>${statusBadge(o.status)}</td>
+            <td>
+                <select class="status-select" onchange="updateOrderStatus('${o.orderId}', this.value, this)">
+                    <option value="PENDING"  ${o.status==='PENDING'  ? 'selected':''}>Pending</option>
+                    <option value="SUCCESS"  ${o.status==='SUCCESS'  ? 'selected':''}>Success</option>
+                    <option value="FAILED"   ${o.status==='FAILED'   ? 'selected':''}>Failed</option>
+                </select>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function filterOrders() {
+    const q      = document.getElementById('orderSearch').value.toLowerCase();
+    const status = document.getElementById('orderStatusFilter').value;
+    renderOrders(allOrders.filter(o =>
+        (o.orderId.toLowerCase().includes(q) || o.username.toLowerCase().includes(q) || o.email.toLowerCase().includes(q)) &&
+        (!status || o.status === status)
+    ));
+}
+
+async function updateOrderStatus(orderId, newStatus, selectEl) {
+    try {
+        const res = await fetch(`/admin/orders/${orderId}/status`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: newStatus })
+        });
+        if (!res.ok) throw new Error();
+        const order = allOrders.find(o => o.orderId === orderId);
+        if (order) order.status = newStatus;
+        showToast('Order status updated to ' + newStatus, 'success');
+        loadStats();
+        renderOrders(allOrders);
+    } catch(e) { showToast('Failed to update status', 'error'); }
+}
+
+function showOrderItems(order) {
+    const body = document.getElementById('orderItemsBody');
+    body.innerHTML = `
+        <div style="margin-bottom:14px">
+            <div style="font-weight:700;font-size:15px;margin-bottom:4px">${order.orderId}</div>
+            <div style="display:flex;gap:12px;align-items:center">
+                <span>${statusBadge(order.status)}</span>
+                <span style="font-size:13px;color:#9e9e9e">${formatDate(order.createdAt)}</span>
+            </div>
+        </div>
+        <div class="order-items-mini">
+            <div class="oim-row" style="font-weight:700;font-size:11px;text-transform:uppercase;color:#9e9e9e;letter-spacing:.5px">
+                <span class="oim-name">Product</span>
+                <span style="min-width:50px;text-align:center">Qty</span>
+                <span style="min-width:80px;text-align:right">Price</span>
+                <span style="min-width:80px;text-align:right">Total</span>
+            </div>
+            ${order.items.map(item => `
+                <div class="oim-row">
+                    <span class="oim-name">${item.productName}</span>
+                    <span style="min-width:50px;text-align:center">×${item.qty}</span>
+                    <span style="min-width:80px;text-align:right">₹${item.price}</span>
+                    <span style="min-width:80px;text-align:right;font-weight:700">₹${item.total}</span>
+                </div>
+            `).join('')}
+        </div>
+        <div style="text-align:right;margin-top:14px;font-size:15px;font-weight:700;color:#2874f0">
+            Total: ₹${Number(order.totalAmount).toLocaleString('en-IN')}
+        </div>
+    `;
+    document.getElementById('orderItemsModal').classList.add('open');
+}
+function closeOrderModal() {
+    document.getElementById('orderItemsModal').classList.remove('open');
+}
+
+// ── PRODUCTS ──
+async function loadProducts() {
+    try {
+        const res   = await fetch('/admin/products');
+        allProducts = await res.json();
+        buildCategoryFilter();
+        renderProducts(allProducts);
+    } catch(e) { showToast('Failed to load products', 'error'); }
+}
+
+function buildCategoryFilter() {
+    const cats = [...new Set(allProducts.map(p => p.category))].filter(Boolean);
+    const sel  = document.getElementById('productCatFilter');
+    sel.innerHTML = '<option value="">All Categories</option>' +
+        cats.map(c => `<option value="${c}">${c}</option>`).join('');
+}
+
+function renderProducts(products) {
+    const grid = document.getElementById('productsGrid');
+    if (!products.length) {
+        grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:70px;color:#9e9e9e">No products found</div>`;
+        return;
+    }
+    grid.innerHTML = products.map(p => {
+        const stockClass = p.stock === 0 ? 'out' : p.stock < 5 ? 'low' : 'in';
+        const stockText  = p.stock === 0 ? '⚠ Out of Stock' : p.stock < 5 ? `⚠ Low Stock (${p.stock})` : `✓ In Stock (${p.stock})`;
+        return `
+        <div class="product-admin-card">
+            ${p.image
+                ? `<img class="pac-img" src="${p.image}" alt="${p.name}">`
+                : `<div class="pac-no-img">🛍️</div>`}
+            <div class="pac-body">
+                <div class="pac-cat">${p.category}</div>
+                <div class="pac-name">${p.name}</div>
+                <div class="pac-price">₹${Number(p.price).toLocaleString('en-IN')}</div>
+                <div class="pac-stock ${stockClass}">${stockText}</div>
+            </div>
+            <div class="pac-actions">
+                <button class="btn btn-outline btn-sm" style="flex:1" onclick='openEditModal(${JSON.stringify(p)})'>
+                    ✏️ Edit
+                </button>
+                <button class="btn btn-danger btn-sm" onclick="deleteProduct(${p.productId}, '${p.name}')">
+                    🗑
+                </button>
+            </div>
+        </div>
+    `;}).join('');
+}
+
+function filterProducts() {
+    const q   = document.getElementById('productSearch').value.toLowerCase();
+    const cat = document.getElementById('productCatFilter').value;
+    renderProducts(allProducts.filter(p =>
+        p.name.toLowerCase().includes(q) &&
+        (!cat || p.category === cat)
+    ));
+}
+
+function openEditModal(product) {
+    document.getElementById('editProductId').value   = product.productId;
+    document.getElementById('editName').value        = product.name;
+    document.getElementById('editDescription').value = product.description;
+    document.getElementById('editPrice').value       = product.price;
+    document.getElementById('editStock').value       = product.stock;
+    document.getElementById('editModal').classList.add('open');
+}
+function closeModal() {
+    document.getElementById('editModal').classList.remove('open');
+}
+
+async function saveProduct() {
+    const id = document.getElementById('editProductId').value;
+    const body = {
+        name:        document.getElementById('editName').value,
+        description: document.getElementById('editDescription').value,
+        price:       document.getElementById('editPrice').value,
+        stock:       document.getElementById('editStock').value
+    };
+    try {
+        const res = await fetch(`/admin/products/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+        if (!res.ok) throw new Error();
+        const idx = allProducts.findIndex(p => p.productId == id);
+        if (idx !== -1) Object.assign(allProducts[idx], body);
+        closeModal();
+        filterProducts();
+        showToast('Product updated successfully', 'success');
+        loadStats();
+    } catch(e) { showToast('Failed to update product', 'error'); }
+}
+
+async function deleteProduct(id, name) {
+    if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
+    try {
+        const res = await fetch(`/admin/products/${id}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error();
+        allProducts = allProducts.filter(p => p.productId !== id);
+        filterProducts();
+        showToast('Product deleted', 'success');
+        loadStats();
+    } catch(e) { showToast('Failed to delete product', 'error'); }
+}
+
+// ── USERS ──
+async function loadUsers() {
+    try {
+        const res = await fetch('/admin/users');
+        allUsers  = await res.json();
+        renderUsers(allUsers);
+    } catch(e) { showToast('Failed to load users', 'error'); }
+}
+
+function renderUsers(users) {
+    const body = document.getElementById('usersBody');
+    if (!users.length) {
+        body.innerHTML = `<tr><td colspan="3" style="text-align:center;padding:50px;color:#9e9e9e">No users found</td></tr>`;
+        return;
+    }
+    body.innerHTML = users.map(u => `
+        <tr>
+            <td>
+                <span class="user-avatar">${u.username.charAt(0).toUpperCase()}</span>
+                <span class="user-info">
+                    <div class="user-name">${u.username}</div>
+                    <div class="user-email">${u.email}</div>
+                </span>
+            </td>
+            <td>
+                <span class="badge ${u.role === 'ADMIN' ? 'badge-blue' : 'badge-success'}">
+                    ${u.role}
+                </span>
+            </td>
+            <td style="color:#9e9e9e;font-size:12px">${u.createdAt ? formatDate(u.createdAt) : '—'}</td>
+        </tr>
+    `).join('');
+}
+
+function filterUsers() {
+    const q    = document.getElementById('userSearch').value.toLowerCase();
+    const role = document.getElementById('userRoleFilter').value;
+    renderUsers(allUsers.filter(u =>
+        (u.username.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)) &&
+        (!role || u.role === role)
+    ));
+}
+
+// ── HELPERS ──
+function statusBadge(status) {
+    const map = {
+        SUCCESS: 'badge-success',
+        PENDING: 'badge-warning',
+        FAILED:  'badge-danger'
+    };
+    return `<span class="badge ${map[status] || 'badge-blue'}">${status}</span>`;
+}
+
+function formatDate(str) {
+    return new Date(str).toLocaleDateString('en-IN', {
+        day: 'numeric', month: 'short', year: 'numeric'
+    });
+}
+
+function showToast(msg, type = 'info') {
+    const t = document.getElementById('toast');
+    const icons = { success: '✓', error: '✕', info: 'ℹ' };
+    t.textContent = (icons[type] || '') + '  ' + msg;
+    t.className   = `toast ${type} show`;
+    setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// Close modals on overlay click
+document.getElementById('editModal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+});
+document.getElementById('orderItemsModal').addEventListener('click', function(e) {
+    if (e.target === this) closeOrderModal();
+});
+</script>
+</body>
+</html>

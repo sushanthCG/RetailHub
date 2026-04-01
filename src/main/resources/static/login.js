@@ -19,12 +19,11 @@ document.getElementById("loginForm").addEventListener("submit", function (e) {
 	        popup.classList.add("show", "success");
 
 	        setTimeout(() => {
-	            // ✅ redirect based on role
-	            if (data.role === "ADMIN") {
-	                window.location.href = "/admin/dashboard";
-	            } else {
-	                window.location.href = "/api/products-page";
-	            }
+				if (data.role === 'ADMIN') {
+				    window.location.href = '/admin/dashboard';
+				} else {
+				    window.location.href = '/api/customerhome';
+				}
 	        }, 1000);
 	    } else if (data.error) {
 	        popup.innerText = "❌ " + data.error;

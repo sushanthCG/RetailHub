@@ -2,17 +2,16 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Products - RetailHub</title>
     <link rel="stylesheet" th:href="@{/style.css}">
     <link rel="stylesheet" th:href="@{/products.css}">
 </head>
 <body>
 
-<!-- ══ NAVBAR ══ -->
 <nav class="navbar">
     <div class="brand">🛒 Retail<span>Hub</span></div>
 
-    <!-- CENTER SEARCH -->
     <div class="search-bar">
         <select id="searchCatSelect">
             <option value="All">All Categories</option>
@@ -22,12 +21,10 @@
             <option value="Mobiles">Mobiles</option>
             <option value="Mobile Accessories">Mobile Accessories</option>
         </select>
-        <input type="text" id="searchInput"
-               placeholder="Search for products, brands and more...">
+        <input type="text" id="searchInput" placeholder="Search for products, brands and more...">
         <button onclick="doSearch()">🔍</button>
     </div>
 
-    <!-- RIGHT -->
     <div class="nav-right">
         <button class="cart-btn" onclick="openCart()">
             🛍️
@@ -35,12 +32,10 @@
         </button>
 
         <div class="profile-wrap">
-            <button class="profile-btn" onclick="toggleDrop()">
-                👤 Account ▾
-            </button>
+            <button class="profile-btn" onclick="toggleDrop()">👤 Account ▾</button>
             <div class="drop-menu" id="dropMenu">
                 <a href="#">👤 &nbsp;My Profile</a>
-            <a href="/api/my-orders">📦 &nbsp;My Orders</a>
+                <a href="/api/my-orders">📦 &nbsp;My Orders</a>
                 <a href="#">⚙️ &nbsp;Settings</a>
                 <div class="divider"></div>
                 <a href="/auth/logout" class="logout">🚪 &nbsp;Logout</a>
@@ -51,14 +46,10 @@
     </div>
 </nav>
 
-<!-- ══ PAGE LAYOUT ══ -->
 <div class="page-layout">
 
-    <!-- LEFT SIDEBAR -->
     <aside class="sidebar">
-
         <div class="sidebar-title">Categories</div>
-        <!-- exact category_name values from DB -->
         <button class="cat-btn active" onclick="filterCat(this,'All')">🏠 All Products</button>
         <button class="cat-btn" onclick="filterCat(this,'Shirts')">👔 Shirts</button>
         <button class="cat-btn" onclick="filterCat(this,'Pants')">👖 Pants</button>
@@ -93,13 +84,9 @@
             <input type="radio" name="price" id="p50000" value="50000" onclick="filterPrice(50000)">
             <label for="p50000">Under ₹50,000</label>
         </div>
-
     </aside>
 
-    <!-- RIGHT CONTENT -->
     <main class="content">
-
-        <!-- Results + Sort bar -->
         <div class="results-bar">
             <span id="resultsCount">Showing all products</span>
             <select id="sortSelect" onchange="sortProducts()">
@@ -110,13 +97,11 @@
             </select>
         </div>
 
-        <!-- No results message -->
         <div class="no-results" id="noResults" style="display:none">
             <div>🔍</div>
             <p>No products found. Try a different search or category.</p>
         </div>
 
-        <!-- Products Grid -->
         <div class="products-grid" id="productsGrid">
 
             <div class="product-card"
@@ -125,46 +110,26 @@
                           data-price=${product.price},
                           data-name=${product.name}">
 
-                <!-- IMAGE — field is image_url -->
                 <div th:if="${product.images != null and !product.images.empty}">
-                    <img th:src="${product.images[0].image_url}"
-                         th:alt="${product.name}">
+                    <img th:src="${product.images[0].image_url}" th:alt="${product.name}">
                 </div>
-                <div class="no-img"
-                     th:if="${product.images == null or product.images.empty}">
-                    🛍️
-                </div>
+                <div class="no-img" th:if="${product.images == null or product.images.empty}">🛍️</div>
 
                 <div class="card-body">
-
-                    <!-- CATEGORY — field is category_name -->
                     <div class="card-cat"
-                         th:text="${product.category != null
-                            ? product.category.category_name : 'General'}">
+                         th:text="${product.category != null ? product.category.category_name : 'General'}">
                     </div>
-
-                    <!-- NAME — field is name -->
                     <div class="card-name" th:text="${product.name}">Name</div>
-
-                    <!-- DESCRIPTION — field is description -->
                     <div class="card-desc" th:text="${product.description}">Desc</div>
 
                     <div class="card-footer">
                         <div>
-                            <!-- PRICE — field is price -->
-                            <div class="card-price">
-                                ₹<span th:text="${product.price}"></span>
-                            </div>
-                            <!-- STOCK — field is stock -->
+                            <div class="card-price">₹<span th:text="${product.price}"></span></div>
                             <div class="card-stock"
                                  th:classappend="${product.stock == 0} ? 'out' : ''"
-                                 th:text="${product.stock > 0}
-                                    ? 'In Stock (' + ${product.stock} + ')'
-                                    : 'Out of Stock'">
+                                 th:text="${product.stock > 0} ? 'In Stock (' + ${product.stock} + ')' : 'Out of Stock'">
                             </div>
                         </div>
-
-                        <!-- ADD TO CART — ID is product_id -->
                         <button class="add-btn"
                                 th:disabled="${product.stock == 0}"
                                 th:attr="onclick='addToCart('
@@ -186,10 +151,8 @@
     </main>
 </div>
 
-<!-- ══ CART OVERLAY ══ -->
 <div class="cart-overlay" id="cartOverlay" onclick="closeCart()"></div>
 
-<!-- ══ CART PANEL ══ -->
 <div class="cart-panel" id="cartPanel">
     <div class="cart-head">
         <h3>🛍️ Your Cart</h3>
@@ -203,7 +166,7 @@
             <span>Total</span>
             <span id="cartTotal">₹0</span>
         </div>
-        <button class="checkout-btn">Proceed to Checkout →</button>
+        <button class="checkout-btn" onclick="goCheckout()">Proceed to Checkout →</button>
     </div>
 </div>
 

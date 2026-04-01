@@ -2,17 +2,16 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>RetailHub - Home</title>
-    <link rel="stylesheet" th:href="@{/style.css}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RetailHub — Shop Online</title>
     <link rel="stylesheet" th:href="@{/customerhome.css}">
 </head>
 <body>
 
-<!-- ══ NAVBAR ══ -->
 <nav class="navbar">
     <div class="brand">🛒 Retail<span>Hub</span></div>
     <div class="nav-right">
-        <button class="cart-btn" onclick="openCart()">
+        <button class="cart-btn" onclick="openCart()" title="Cart">
             🛍️
             <span class="cart-badge" id="cartBadge">0</span>
         </button>
@@ -20,7 +19,7 @@
             <button class="profile-btn" onclick="toggleDrop()">👤 Account ▾</button>
             <div class="drop-menu" id="dropMenu">
                 <a href="#">👤 &nbsp;My Profile</a>
-               <a href="/api/my-orders">📦 &nbsp;My Orders</a>
+                <a href="/api/my-orders">📦 &nbsp;My Orders</a>
                 <a href="#">⚙️ &nbsp;Settings</a>
                 <div class="divider"></div>
                 <a href="/auth/logout" class="logout">🚪 &nbsp;Logout</a>
@@ -29,8 +28,6 @@
     </div>
 </nav>
 
-<!-- ══ CATEGORY BAR ══ -->
-<!-- exact DB category_name values used in onclick -->
 <div class="cat-bar">
     <button class="cat-btn active" onclick="filterCat(this,'All')">🏠 All</button>
     <button class="cat-btn" onclick="filterCat(this,'Shirts')">👔 Shirts</button>
@@ -40,16 +37,31 @@
     <button class="cat-btn" onclick="filterCat(this,'Mobile Accessories')">🎧 Mobile Accessories</button>
 </div>
 
-<!-- ══ HERO ══ -->
 <div class="hero">
-    <h1>Welcome to RetailHub! 👋</h1>
-    <p>Discover the latest fashion &amp; tech products</p>
-    <a href="/api/products-page" class="hero-btn">Shop All Products →</a>
+    <div class="hero-content">
+        <div class="hero-eyebrow">🔥 New Arrivals Every Week</div>
+        <h1>Shop <span>Smart</span>, Live Better</h1>
+        <p>Discover the latest fashion, electronics &amp; accessories — all in one place</p>
+        <div class="hero-actions">
+            <a href="/api/products-page" class="hero-btn">Shop All Products →</a>
+            <a href="#featured" class="hero-btn-outline">View Featured</a>
+        </div>
+    </div>
 </div>
 
-<!-- ══ PRODUCTS ══ -->
-<div class="section">
-    <div class="section-title">🛍️ Featured Products</div>
+<div class="trust-strip">
+    <div class="trust-item"><span class="ti-icon">🚚</span> Free Delivery on All Orders</div>
+    <div class="trust-item"><span class="ti-icon">🔒</span> 100% Secure Payments</div>
+    <div class="trust-item"><span class="ti-icon">↩️</span> Easy Returns</div>
+    <div class="trust-item"><span class="ti-icon">⭐</span> Top Rated Products</div>
+</div>
+
+<div class="section" id="featured">
+    <div class="section-header">
+        <div class="section-title">🛍️ Featured Products</div>
+        <a href="/api/products-page" class="section-link">View All →</a>
+    </div>
+
     <div class="products-grid" id="productsGrid">
 
         <div class="product-card"
@@ -57,44 +69,28 @@
              th:attr="data-category=${product.category != null ? product.category.category_name : ''},
                       data-name=${product.name}">
 
-            <!-- IMAGE — image_url field -->
-            <div th:if="${product.images != null and !product.images.empty}">
-                <img th:src="${product.images[0].image_url}"
-                     th:alt="${product.name}">
+            <div class="card-img-wrap">
+                <div th:if="${product.images != null and !product.images.empty}">
+                    <img th:src="${product.images[0].image_url}" th:alt="${product.name}">
+                </div>
+                <div class="no-img" th:if="${product.images == null or product.images.empty}">🛍️</div>
             </div>
-            <div class="no-img"
-                 th:if="${product.images == null or product.images.empty}">🛍️</div>
 
             <div class="card-body">
-
-                <!-- CATEGORY — category_name field -->
                 <div class="card-cat"
-                     th:text="${product.category != null
-                        ? product.category.category_name : 'General'}">
+                     th:text="${product.category != null ? product.category.category_name : 'General'}">
                 </div>
-
-                <!-- NAME -->
                 <div class="card-name" th:text="${product.name}">Name</div>
-
-                <!-- DESCRIPTION -->
                 <div class="card-desc" th:text="${product.description}">Desc</div>
 
                 <div class="card-footer">
-                    <div>
-                        <!-- PRICE -->
-                        <div class="card-price">
-                            ₹<span th:text="${product.price}"></span>
-                        </div>
-                        <!-- STOCK -->
+                    <div class="card-price-wrap">
+                        <div class="card-price">₹<span th:text="${product.price}"></span></div>
                         <div class="card-stock"
                              th:classappend="${product.stock == 0} ? 'out' : ''"
-                             th:text="${product.stock > 0}
-                                ? 'In Stock (' + ${product.stock} + ')'
-                                : 'Out of Stock'">
+                             th:text="${product.stock > 0} ? 'In Stock (' + ${product.stock} + ')' : 'Out of Stock'">
                         </div>
                     </div>
-
-                    <!-- ADD TO CART — product_id field -->
                     <button class="add-btn"
                             th:disabled="${product.stock == 0}"
                             th:attr="onclick='addToCart('
@@ -106,7 +102,7 @@
                                 + ','
                                 + '&quot;' + (${product.images != null and !product.images.empty} ? ${product.images[0].image_url} : '') + '&quot;'
                                 + ')'">
-                        🛒 Add to Cart
+                        + Cart
                     </button>
                 </div>
             </div>
@@ -116,7 +112,6 @@
 </div>
 
 <div class="cart-overlay" id="cartOverlay" onclick="closeCart()"></div>
-
 
 <div class="cart-panel" id="cartPanel">
     <div class="cart-head">
@@ -131,7 +126,7 @@
             <span>Total</span>
             <span id="cartTotal">₹0</span>
         </div>
-        <button class="checkout-btn" onclick="window.location.href='/api/checkout'">Proceed to Checkout →</button>
+        <button class="checkout-btn" onclick="goCheckout()">Proceed to Checkout →</button>
     </div>
 </div>
 
